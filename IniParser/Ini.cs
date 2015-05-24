@@ -17,11 +17,13 @@ namespace IniParser {
 				var path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
 				if (!String.IsNullOrEmpty(path)) {
-					fileName = Path.Combine(path, fileName);
+					var fullFileName = Path.Combine(path, fileName);
 
-					if (!File.Exists(fileName)) {
-						throw new FileNotFoundException("Ini file not found at " + fileName + " or " + fileName);
+					if (!File.Exists(fullFileName)) {
+						throw new FileNotFoundException("Ini file not found at " + fileName + " or " + fullFileName);
 					}
+
+					fileName = fullFileName;
 				}
 			}
 
