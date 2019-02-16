@@ -3,18 +3,22 @@
 namespace IniParser.Test {
 	class Program {
 		static void Main(string[] args) {
-			var ini = new Ini("config.ini");
+			new Program();
+		}
 
-			var val = ini.GetInt("vm", "countString");
+		public Program() {
+			var ini = Ini.Instance;
+
+			var val = ini.GetInt("countString", "vm");
 			Console.WriteLine(val);
 
-			val = ini.GetInt("vm", "count");
+			val = ini.GetInt("count", "vm");
 			Console.WriteLine(val);
 
-			var val1 = ini.GetString("vm", "count");
+			var val1 = ini.GetString("count", "vm");
 			Console.WriteLine(val);
 
-			ini.UpdateValue("vm", "countString", 67);
+			ini.UpdateValue("countString", 67, "vm");
 
 			Console.ReadKey();
 		}

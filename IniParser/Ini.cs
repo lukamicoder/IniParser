@@ -6,28 +6,43 @@ using System.Reflection;
 
 namespace IniParser {
 	public class Ini {
+		private static Ini _instance;
+		private static readonly object Locker = new object();
+
 		private List<IniSection> _sectionList;
 		private string _fileName;
 		private string[] _lines;
+		private const string DefaultSectionName = "Settings";
 
-		public Ini(string fileName) {
+		public static Ini Instance {
+			get {
+				lock (Locker) {
+					return _instance ?? (_instance = new Ini());
+				}
+			}
+		}
+
+		private Ini() {
+			_fileName = AppDomain.CurrentDomain.FriendlyName;
+			if (String.IsNullOrEmpty(_fileName)) {
+				_fileName = "config";
+			}
+			_fileName = _fileName.Substring(0, _fileName.Length - 4) + ".ini";
 			_sectionList = new List<IniSection>();
 
-			if (!File.Exists(fileName)) {
+			if (!File.Exists(_fileName)) {
 				var path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
 				if (!String.IsNullOrEmpty(path)) {
-					var fullFileName = Path.Combine(path, fileName);
+					var fullFileName = Path.Combine(path, _fileName);
 
 					if (!File.Exists(fullFileName)) {
-						throw new FileNotFoundException("Ini file not found at " + fileName + " or " + fullFileName);
+						throw new FileNotFoundException("Ini file not found at " + _fileName + " or " + fullFileName);
 					}
 
-					fileName = fullFileName;
+					_fileName = fullFileName;
 				}
 			}
-
-			_fileName = fileName;
 
 			Parse();
 		}
@@ -75,7 +90,7 @@ namespace IniParser {
 			}
 		}
 
-		public IniSection GetSection(string sectionName) {
+		public IniSection GetSection(string sectionName = DefaultSectionName) {
 			return _sectionList.FirstOrDefault(s => s.Name == sectionName);
 		}
 
@@ -83,7 +98,7 @@ namespace IniParser {
 			return _sectionList;
 		}
 
-		public string GetString(string sectionName, string key) {
+		public string GetString(string key, string sectionName = DefaultSectionName) {
 			string val = null;
 
 			var section = GetSection(sectionName);
@@ -94,21 +109,21 @@ namespace IniParser {
 			return val;
 		}
 
-		public bool GetBool(string sectionName, string key) {
-			var val = GetString(sectionName, key);
+		public bool GetBool(string key, string sectionName = DefaultSectionName) {
+			var val = GetString(key, sectionName);
 			if (String.IsNullOrEmpty(val)) {
 				return false;
 			}
 
-			if (val == "1" && val.ToLower() == "true") {
+			if (val == "1" || val.ToLower() == "true") {
 				return true;
 			}
 
 			return false;
 		}
 
-		public int GetInt(string sectionName, string key) {
-			var val = GetString(sectionName, key);
+		public int GetInt(string key, string sectionName = DefaultSectionName) {
+			var val = GetString(key, sectionName);
 			if (String.IsNullOrEmpty(val)) {
 				return 0;
 			}
@@ -121,8 +136,8 @@ namespace IniParser {
 			return value;
 		}
 
-		public double GetDouble(string sectionName, string key) {
-			var val = GetString(sectionName, key);
+		public double GetDouble(string key, string sectionName = DefaultSectionName) {
+			var val = GetString(key, sectionName);
 			if (String.IsNullOrEmpty(val)) {
 				return 0;
 			}
@@ -134,7 +149,7 @@ namespace IniParser {
 			return value;
 		}
 
-		public void UpdateValue(string sectionName, string key, string val) {
+		public void UpdateValue(string key, string val, string sectionName = DefaultSectionName) {
 			var section = GetSection(sectionName);
 			if (section == null) {
 				throw new ArgumentException("No section found: " + sectionName);
@@ -166,16 +181,16 @@ namespace IniParser {
 			File.WriteAllLines(_fileName, _lines);
 		}
 
-		public void UpdateValue(string sectionName, string key, bool val) {
-			UpdateValue(sectionName, key, val ? "true" : "false");
+		public void UpdateValue(string key, bool val, string sectionName = DefaultSectionName) {
+			UpdateValue(key, val ? "true" : "false", sectionName);
 		}
 
-		public void UpdateValue(string sectionName, string key, int val) {
-			UpdateValue(sectionName, key, val + "");
+		public void UpdateValue(string key, int val, string sectionName = DefaultSectionName) {
+			UpdateValue(key, val + "", sectionName);
 		}
 
-		public void UpdateValue(string sectionName, string key, double val) {
-			UpdateValue(sectionName, key, val + "");
+		public void UpdateValue(string key, double val, string sectionName = DefaultSectionName) {
+			UpdateValue(key, val + "", sectionName);
 		}
 	}
 }
