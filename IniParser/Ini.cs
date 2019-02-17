@@ -102,17 +102,21 @@ namespace IniParser {
 			string val = null;
 
 			var section = GetSection(sectionName);
-			if (section != null) {
-				section.Keys.TryGetValue(key, out val);
-			}
+			section?.Keys.TryGetValue(key, out val);
 
 			return val;
 		}
 
-		public bool GetBool(string key, string sectionName = DefaultSectionName) {
+		public bool? GetBool(string key, string sectionName = DefaultSectionName) {
 			var val = GetString(key, sectionName);
 			if (String.IsNullOrEmpty(val)) {
-				return false;
+				return null;
+			}
+
+			if (val != "1" && val != "0" && 
+			    val.ToLower() != "false" && val.ToLower() != "true" &&
+			    val.ToLower() != "yes" && val.ToLower() != "no") {
+				return null;
 			}
 
 			if (val == "1" || val.ToLower() == "true") {
@@ -122,30 +126,29 @@ namespace IniParser {
 			return false;
 		}
 
-		public int GetInt(string key, string sectionName = DefaultSectionName) {
+		public int? GetInt(string key, string sectionName = DefaultSectionName) {
 			var val = GetString(key, sectionName);
 			if (String.IsNullOrEmpty(val)) {
-				return 0;
+				return null;
 			}
 
-			int value;
-			if (!int.TryParse(val, out value)) {
-				return 0;
+			if (!int.TryParse(val, out var value)) {
+				return null;
 			}
 
 			return value;
 		}
 
-		public double GetDouble(string key, string sectionName = DefaultSectionName) {
+		public double? GetDouble(string key, string sectionName = DefaultSectionName) {
 			var val = GetString(key, sectionName);
 			if (String.IsNullOrEmpty(val)) {
-				return 0;
+				return null;
 			}
 
-			double value;
-			if (!double.TryParse(val, out value)) {
-				return 0;
+			if (!double.TryParse(val, out var value)) {
+				return null;
 			}
+			
 			return value;
 		}
 
